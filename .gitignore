@@ -1,0 +1,7 @@
+config.py
+__pycache__
+*.session
+*.session-journal
+chromedriver.exe
+*.ipynb
+test*
