@@ -6,10 +6,9 @@ import traceback
 from urllib.parse import parse_qs, urlparse
 
 from fuzzywuzzy import process
-from pyrogram import Client
+from pyrogram import Client, client
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message
-from telethon import TelegramClient
 
 from cansend import CanSend
 
@@ -99,9 +98,7 @@ def get_total_size(files):
 
 
 def get_current_downloading(file_name: str = None):
-    filename_pattern = r"^(.+?)(?:\s\(\d+\))?(\.\w+)?$"
     if os.path.exists(file_name):
-        print("Found")
         return file_name
     crdownload_files = [
         d
@@ -175,21 +172,12 @@ async def send_file(
         progress=progress_bar,
         supports_streaming=True,
         chat_id=message.chat.id,
+        protect_content=True,
         caption=f"""
 Title: `{file_name}`
 """,
     )
 
-    #     await bot.send_video(
-    #         chat_id=message.chat.id,
-    #         video=sent.video.file_id,
-    #         protect_content=True,
-    #         supports_streaming=True,
-    #         caption=f"""
-    # Title: `{file_name}`
-    # Size: **{get_formatted_size(sent.video.file_size)}**
-    # """,
-    #     )
     try:
         await bot.delete_messages(message.chat.id, edit_message.id)
         if sent or not sent:
@@ -199,8 +187,20 @@ Title: `{file_name}`
         pass
 
 
+def get_file_name(file_name: str = None):
+    if os.path.exists(file_name):
+        return file_name
+    crdownload_files = [d for d in os.listdir() if not d.endswith(".crdownload")]
+    if not crdownload_files:
+        return
+
+    matching_one = process.extract(file_name, crdownload_files, limit=1)
+    name, ratio = matching_one[0]
+    return False if not matching_one else name if ratio >= 80 else False
+
+
 async def download_and_send(
-    bot: TelegramClient,
+    bot: client,
     message: Message,
     edit_message: Message,
     file_name: str = None,
@@ -223,9 +223,10 @@ async def download_and_send(
             not isinstance(crdownload_file, bool)
             and os.path.exists(crdownload_file.replace(".crdownload", ""))
         ) or (os.path.exists(file_name)):
+            crdownload_file = file_name
             raise Exception()
         if not crdownload_file:
-            return
+            return await edit_message.edit("SOMETHING WENT WRONG")
 
         if os.path.exists(crdownload_file.replace(".crdownload", "")):
             crdownload_file = file_name
@@ -239,7 +240,6 @@ async def download_and_send(
                 raise Exception()
             current_size = os.path.getsize(crdownload_file)
             progress = current_size / total_size * 100
-            time.sleep(2)
             elapsed_time = time.time() - previous_time
             size_difference = current_size - previous_size
             download_speed = size_difference / elapsed_time if elapsed_time > 0 else 0
@@ -266,22 +266,20 @@ async def download_and_send(
             previous_size = current_size
             previous_time = time.time()
     except Exception as e:
-        if os.path.exists(crdownload_file.replace(".crdownload", "")) or os.path.exists(
-            file_name
-        ):
+        await asyncio.sleep(2)
+        local_file_name = get_file_name(file_name)
+
+        if local_file_name:
             await send_file(
                 bot=bot,
                 edit_message=edit_message,
                 message=message,
-                file=crdownload_file.replace(".crdownload", "")
-                if os.path.exists(crdownload_file.replace(".crdownload", ""))
-                else os.path.exists(file_name),
-                file_name=file_name,
+                file=local_file_name,
+                file_name=local_file_name,
             )
         else:
+            await edit_message.edit("SOMETHING WENT WRONG.")
             traceback.print_exc()
     finally:
-        if crdownload_file and os.path.exists(crdownload_file):
-            os.remove(crdownload_file)
-        if os.path.exists(crdownload_file.replace(".crdownload", "")):
-            os.remove(crdownload_file.replace(".crdownload", ""))
+        if local_file_name and os.path.exists(local_file_name):
+            os.remove(local_file_name)
