@@ -50,7 +50,6 @@ def get_data(url: str):
     )
 
     response = session.get("https://www.terabox.app/share/list", params=params)
-    print(response.text)
     if not response.status_code == 200:
         return False
     r_j = response.json()
