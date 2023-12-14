@@ -11,6 +11,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message
 
 from cansend import CanSend
+from config import CHAT_ID
 
 
 def check_url_patterns(url):
@@ -171,11 +172,20 @@ async def send_file(
         video=file,
         progress=progress_bar,
         supports_streaming=True,
+        chat_id=CHAT_ID,
+    )
+
+    await bot.send_video(
+        video=str(sent.video.file_id),
+        supports_streaming=True,
         chat_id=message.chat.id,
-        protect_content=True,
         caption=f"""
 Title: `{file_name}`
 """,
+        protect_content=True,
+        has_spoiler=True,
+        reply_to_message_id=message.id,
+        file_name=file_name,
     )
 
     try:
