@@ -1,7 +1,11 @@
-config.py
 __pycache__
 *.session
 *.session-journal
 chromedriver.exe
 *.ipynb
 test*
+tele.py
+config.py
+*.crdownload
+*.mp4
+*.mkv

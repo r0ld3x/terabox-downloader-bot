@@ -12,8 +12,21 @@ session.cookies.update(cookies)
 session.headers.update(headers)
 
 
+def find_between(data, first, last):
+    try:
+        start = data.index(first) + len(first)
+        end = data.index(last, start)
+        return data[start:end]
+    except ValueError:
+        return None
+
+
 def get_data(url: str):
     a = session.get(url, headers=headers, cookies=cookies)
+    logid = find_between(a.text, "dp-logid=", "&")
+    jstoken = (
+        find_between(a.text, "window.jsToken%20%3D%20a%7D%3Bfn%28%22", "%22%29"),
+    )
     shorturl = extract_surl_from_url(a.url)
     if not shorturl:
         return False
@@ -24,9 +37,9 @@ def get_data(url: str):
         ("clienttype", "0"),
         (
             "jsToken",
-            "806B937AC4C794FF6C6FC72CC9B1CEAF5D1A6FBC7BC77CDE52B01679B04901F97BA6F9E288091E97AE186BCF748BB81F71760F6269B034094B467FDDC9771AE6",
+            jstoken,
         ),
-        ("dp-logid", "27843600477115380012"),
+        ("dp-logid", logid),
         ("page", "1"),
         ("num", "20"),
         ("by", "name"),
@@ -37,6 +50,7 @@ def get_data(url: str):
     )
 
     response = session.get("https://www.terabox.app/share/list", params=params)
+    print(response.text)
     if not response.status_code == 200:
         return False
     r_j = response.json()
