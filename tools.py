@@ -293,3 +293,13 @@ async def download_and_send(
     finally:
         if local_file_name and os.path.exists(local_file_name):
             os.remove(local_file_name)
+
+
+from pyrogram.types import ChatMember
+
+
+async def is_user_on_chat(bot: Client, chat_id: int, user_id: int) -> ChatMember | bool:
+    try:
+        return await bot.get_chat_member(chat_id, user_id)
+    except:
+        return False
