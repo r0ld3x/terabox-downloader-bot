@@ -9,16 +9,16 @@
 Here're some of the project's best features:
 
 - 2 hours of wait time
-- Fast video download
+- Download videos fastly
 - 1 minute anti spam
 - Fast
-- Easy to update
+- Easy to upadate
 
 <h2>🛠️ Installation Steps:</h2>
 
-<p>1. <a href="https://www.python.org/downloads/">Download latest version of python</a></p>
+<a href="https://www.python.org/downloads/">1. Download latest version of python</a>
 
-<p>2. <a href="https://github.com/r0ld3x/terabox-downloader-bot/archive/refs/heads/main.zip">Download this repo</a></p>
+<a href="https://github.com/r0ld3x/terabox-downloader-bot/archive/refs/heads/main.zip">2. Download this repo</a>
 
 <p>3. Unzip and open terminal in that folder</p>
 
@@ -43,17 +43,15 @@ PORT = 6379  # redis port
 PASSWORD = ""  # redis password
 
 PRIVATE_CHAT_ID = -1001234567890  # CHAT WHERE YOU WANT TO STORE VIDEOS
-COOKIE = ""  # COOKIE FOR AUTHENTICATION (get from chrome dev tools)
+COOKIE = ""  # COOKIE FOR AUTHENTICATION (get from chrome dev tools) ex: "PANWEB=1; csrfToken=; lang=en; TSID=; __bid_n=; _ga=; __stripe_mid=; ndus=; browserid==; ndut_fmt=; _ga_06ZNKL8C2E=" (dont use this)
 ADMINS = [1317173146]
 
 ```
 
 <p>6. start the bot</p>
-
 ```
 python main.py
 ```
-
 <h2>🍰 Contribution Guidelines:</h2>
 
-Use at own risk. I am not responsible for any break of Terms and conditions of any companies.
+Use at own risk. i am not responsible for any break of Terms and conditions of any companies.
