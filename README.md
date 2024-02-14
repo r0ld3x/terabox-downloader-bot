@@ -16,9 +16,9 @@ Here're some of the project's best features:
 
 <h2>🛠️ Installation Steps:</h2>
 
-<a href="https://www.python.org/downloads/">1. Download latest version of python</a>
+<p>1. <a href="https://www.python.org/downloads/">Download latest version of python</a></p>
 
-<a href="https://github.com/r0ld3x/terabox-downloader-bot/archive/refs/heads/main.zip">2. Download this repo</a>
+<p>2. <a href="https://github.com/r0ld3x/terabox-downloader-bot/archive/refs/heads/main.zip">Download this repo</a></p>>
 
 <p>3. Unzip and open terminal in that folder</p>
 
@@ -56,4 +56,4 @@ python main.py
 
 <h2>🍰 Contribution Guidelines:</h2>
 
-Use at own risk. i am not responsible for any break of Terms and conditions of any companies.
+Use at own risk. I am not responsible for any break of Terms and conditions of any companies.
