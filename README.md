@@ -16,7 +16,7 @@ Here're some of the project's best features:
 
 <h2>🛠️ Installation Steps:</h2>
 
-<p>2. <a href="https://github.com/r0ld3x/terabox-downloader-bot/archive/refs/heads/main.zip">Download this repo</a></p>
+<p>1. <a href="https://www.python.org/downloads/">Download latest version of python</a></p>
 <p>2. <a href="https://github.com/r0ld3x/terabox-downloader-bot/archive/refs/heads/main.zip">Download this repo</a></p>
 
 <p>3. Unzip and open terminal in that folder</p>
