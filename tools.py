@@ -1,20 +1,21 @@
-import asyncio
-import os
 import re
-import time
-import traceback
+from io import BytesIO
 from urllib.parse import parse_qs, urlparse
 
-from fuzzywuzzy import process
-from pyrogram import Client, client
-from pyrogram.enums import ParseMode
-from pyrogram.types import Message
-
-from cansend import CanSend
-from config import CHAT_ID
+import requests
+from telethon import TelegramClient
 
 
-def check_url_patterns(url):
+def check_url_patterns(url: str) -> bool:
+    """
+    Check if the given URL matches any of the known URL patterns for code hosting services.
+
+    Parameters:
+    url (str): The URL to be checked.
+
+    Returns:
+    bool: True if the URL matches a known pattern, False otherwise.
+    """
     patterns = [
         r"ww\.mirrobox\.com",
         r"www\.nephobox\.com",
@@ -45,7 +46,40 @@ def check_url_patterns(url):
     return False
 
 
-def get_urls_from_string(string):
+def extract_code_from_url(url: str) -> str | None:
+    """
+    Extracts the code from a URL.
+
+    Parameters:
+        url (str): The URL to extract the code from.
+
+    Returns:
+        str: The extracted code, or None if the URL does not contain a code.
+    """
+    pattern1 = r"/s/(\w+)"
+    pattern2 = r"surl=(\w+)"
+
+    match = re.search(pattern1, url)
+    if match:
+        return match.group(1)
+
+    match = re.search(pattern2, url)
+    if match:
+        return match.group(1)
+
+    return None
+
+
+def get_urls_from_string(string: str) -> str | None:
+    """
+    Extracts all URLs from a given string.
+
+    Parameters:
+        string (str): The input string.
+
+    Returns:
+        str: The first URL found in the input string, or None if no URLs were found.
+    """
     pattern = r"(https?://\S+)"
     urls = re.findall(pattern, string)
     urls = [url for url in urls if check_url_patterns(url)]
@@ -54,10 +88,19 @@ def get_urls_from_string(string):
     return urls[0]
 
 
-def extract_surl_from_url(url):
+def extract_surl_from_url(url: str) -> str:
+    """
+    Extracts the surl from a URL.
+
+    Parameters:
+        url (str): The URL to extract the surl from.
+
+    Returns:
+        str: The extracted surl, or None if the URL does not contain a surl.
+    """
     parsed_url = urlparse(url)
     query_params = parse_qs(parsed_url.query)
-    surl = query_params.get("surl", None)
+    surl = query_params.get("surl", [])
 
     if surl:
         return surl[0]
@@ -65,7 +108,16 @@ def extract_surl_from_url(url):
         return False
 
 
-def get_formatted_size(size_bytes):
+def get_formatted_size(size_bytes: int) -> str:
+    """
+    Returns a human-readable file size from the given number of bytes.
+
+    Parameters:
+        size_bytes (int): The number of bytes to be converted to a file size.
+
+    Returns:
+        str: The file size in a human-readable format.
+    """
     if size_bytes >= 1024 * 1024:
         size = size_bytes / (1024 * 1024)
         unit = "MB"
@@ -79,7 +131,16 @@ def get_formatted_size(size_bytes):
     return f"{size:.2f} {unit}"
 
 
-def convert_seconds(seconds):
+def convert_seconds(seconds: int) -> str:
+    """
+    Convert seconds into a human-readable format.
+
+    Parameters:
+        seconds (int): The number of seconds to convert.
+
+    Returns:
+        str: The seconds converted to a human-readable format.
+    """
     seconds = int(seconds)
     hours = seconds // 3600
     remaining_seconds = seconds % 3600
@@ -94,212 +155,84 @@ def convert_seconds(seconds):
         return f"{remaining_seconds_final}s"
 
 
-def get_total_size(files):
-    return sum(os.path.getsize(file) for file in files)
+async def is_user_on_chat(bot: TelegramClient, chat_id: int, user_id: int) -> bool:
+    """
+    Check if a user is present in a specific chat.
 
+    Parameters:
+        bot (TelegramClient): The Telegram client instance.
+        chat_id (int): The ID of the chat.
+        user_id (int): The ID of the user.
 
-def get_current_downloading(file_name: str = None):
-    if os.path.exists(file_name):
-        return file_name
-    crdownload_files = [
-        d
-        for d in os.listdir()
-        if d.endswith(".crdownload") or d.endswith(".mp4") or d.endswith(".mkv")
-    ]
-    if not crdownload_files:
-        return
-
-    matching_one = process.extract(file_name, crdownload_files, limit=1)
-    name, ratio = matching_one[0]
-    return False if not matching_one else name if ratio >= 80 else False
-
-
-def progress_bar(
-    current_downloaded, total_downloaded, download_speed, time_remaining, file_name
-):
-    bar_length = 40
-    percent = current_downloaded / total_downloaded
-    arrow = "+" * int(percent * bar_length) + ">"
-    spaces = "-" * (bar_length - len(arrow))
-
-    head_text = f"DOWNLOADING `{file_name}`"
-    progress_bar = f"[{arrow + spaces}] {percent:.2%}"
-    speed_line = f"Speed: **{get_formatted_size(download_speed)}/s**"
-    time_line = f"Time Remaining: **{convert_seconds(time_remaining)}**"
-    size_line = f"Size: **{get_formatted_size(current_downloaded)}** / **{get_formatted_size(total_downloaded)}**"
-    return f"{head_text}\n{progress_bar}\n{speed_line}\n{time_line}\n{size_line}"
-
-
-async def send_file(
-    bot: Client, edit_message: Message, message: Message, file, file_name
-):
-    start_time = time.time()
-    can_send = CanSend()
-
-    async def progress_bar(
-        current_downloaded,
-        total_downloaded,
-    ):
-        if not can_send.can_send():
-            return
-        bar_length = 40
-        percent = current_downloaded / total_downloaded
-        arrow = "+" * int(percent * bar_length) + ">"
-        spaces = "-" * (bar_length - len(arrow))
-
-        elapsed_time = time.time() - start_time
-
-        head_text = f"SENDING `{file_name}`"
-        progress_bar = f"[{arrow + spaces}] {percent:.2%}"
-        upload_speed = current_downloaded / elapsed_time if elapsed_time > 0 else 0
-        speed_line = f"Speed: **{get_formatted_size(upload_speed)}/s**"
-
-        time_remaining = (
-            (total_downloaded - current_downloaded) / upload_speed
-            if upload_speed > 0
-            else 0
-        )
-        time_line = f"Time Remaining: `{convert_seconds(time_remaining)}`"
-
-        size_line = f"Size: **{get_formatted_size(current_downloaded)}** / **{get_formatted_size(total_downloaded)}**"
-
-        await edit_message.edit(
-            f"{head_text}\n{progress_bar}\n{speed_line}\n{time_line}\n{size_line}",
-            parse_mode=ParseMode.MARKDOWN,
-        )
-
-    sent = await bot.send_video(
-        video=file,
-        progress=progress_bar,
-        supports_streaming=True,
-        chat_id=CHAT_ID,
-    )
-
-    await bot.send_video(
-        video=str(sent.video.file_id),
-        supports_streaming=True,
-        chat_id=message.chat.id,
-        caption=f"""
-Title: `{file_name}`
-""",
-        protect_content=True,
-        has_spoiler=True,
-        reply_to_message_id=message.id,
-        file_name=file_name,
-    )
-
+    Returns:
+        bool: True if the user is present in the chat, False otherwise.
+    """
     try:
-        await bot.delete_messages(message.chat.id, edit_message.id)
-        if sent or not sent:
-            if os.path.exists(file):
-                os.remove(file)
-    except:
-        pass
-
-
-def get_file_name(file_name: str = None):
-    if os.path.exists(file_name):
-        return file_name
-    crdownload_files = [d for d in os.listdir() if not d.endswith(".crdownload")]
-    if not crdownload_files:
-        return
-
-    matching_one = process.extract(file_name, crdownload_files, limit=1)
-    name, ratio = matching_one[0]
-    return False if not matching_one else name if ratio >= 80 else False
-
-
-async def download_and_send(
-    bot: client,
-    message: Message,
-    edit_message: Message,
-    file_name: str = None,
-    total_size: int = None,
-):
-    timeout_seconds = 10
-    start_time = time.time()
-    if not file_name:
-        return
-    crdownload_file = get_current_downloading(file_name)
-    last_update = time.time()
-    while (
-        not crdownload_file
-        and time.time() - start_time > timeout_seconds
-        and not os.path.exists(crdownload_file.replace(".crdownload", ""))
-    ):
-        crdownload_file = get_current_downloading(file_name)
-    try:
-        if (
-            not isinstance(crdownload_file, bool)
-            and os.path.exists(crdownload_file.replace(".crdownload", ""))
-        ) or (os.path.exists(file_name)):
-            crdownload_file = file_name
-            raise Exception()
-        if not crdownload_file:
-            return await edit_message.edit("SOMETHING WENT WRONG")
-
-        if os.path.exists(crdownload_file.replace(".crdownload", "")):
-            crdownload_file = file_name
-            raise Exception()
-        previous_size = os.path.getsize(crdownload_file)
-        previous_time = time.time()
-        can_send_instance = CanSend()
-        while (time.time() - last_update) < 15:
-            if os.path.exists(crdownload_file.replace(".crdownload", "")):
-                crdownload_file = file_name
-                raise Exception()
-            current_size = os.path.getsize(crdownload_file)
-            progress = current_size / total_size * 100
-            elapsed_time = time.time() - previous_time
-            size_difference = current_size - previous_size
-            download_speed = size_difference / elapsed_time if elapsed_time > 0 else 0
-
-            remaining_time = (
-                (total_size - current_size) / download_speed
-                if download_speed > 0
-                else 0
-            )
-            if can_send_instance.can_send():
-                await edit_message.edit(
-                    progress_bar(
-                        current_size,
-                        total_size,
-                        download_speed,
-                        remaining_time,
-                        file_name,
-                    )
-                )
-
-            if previous_size != current_size:
-                last_update = time.time()
-
-            previous_size = current_size
-            previous_time = time.time()
-    except Exception as e:
-        await asyncio.sleep(2)
-        local_file_name = get_file_name(file_name)
-
-        if local_file_name:
-            await send_file(
-                bot=bot,
-                edit_message=edit_message,
-                message=message,
-                file=local_file_name,
-                file_name=local_file_name,
-            )
-        else:
-            await edit_message.edit("SOMETHING WENT WRONG.")
-            traceback.print_exc()
-    finally:
-        if local_file_name and os.path.exists(local_file_name):
-            os.remove(local_file_name)
-
-
-from pyrogram.types import ChatMember
-
-
-async def is_user_on_chat(bot: Client, chat_id: int, user_id: int) -> ChatMember | bool:
-    try:
-        return await bot.get_chat_member(chat_id, user_id)
+        check = await bot.get_permissions(chat_id, user_id)
+        return check
     except:
         return False
+
+
+async def download_file(
+    url: str,
+    filename: str,
+    callback=None,
+) -> str | bool:
+    """
+    Download a file from a URL to a specified location.
+
+    Args:
+        url (str): The URL of the file to download.
+        filename (str): The location to save the file to.
+        callback (function, optional): A function that will be called
+            with progress updates during the download. The function should
+            accept three arguments: the number of bytes downloaded so far,
+            the total size of the file, and a status message.
+
+    Returns:
+        str: The filename of the downloaded file, or False if the download
+            failed.
+
+    Raises:
+        requests.exceptions.HTTPError: If the server returns an error.
+        OSError: If there is an error opening or writing to the file.
+    """
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        with open(filename, "wb") as file:
+            for chunk in response.iter_content(chunk_size=1024):
+                file.write(chunk)
+                if callback:
+                    downloaded_size = file.tell()
+                    total_size = int(response.headers.get("content-length", 0))
+                    await callback(downloaded_size, total_size, "Downloading")
+        return filename
+
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+        return False
+
+
+def download_image_to_bytesio(url: str, filename: str) -> BytesIO | None:
+    """
+    Downloads an image from a URL and returns it as a BytesIO object.
+
+    Args:
+        url (str): The URL of the image to download.
+        filename (str): The filename to save the image as.
+
+    Returns:
+        BytesIO: The image data as a BytesIO object, or None if the download failed.
+    """
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            image_bytes = BytesIO(response.content)
+            image_bytes.name = filename
+            return image_bytes
+        else:
+            return None
+    except:
+        return None

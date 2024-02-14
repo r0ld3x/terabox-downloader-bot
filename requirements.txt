@@ -1,3 +1,9 @@
-selenium
+telethon
+cryptg
+pyaes
+aiohttp
+aiodns
+aiohttp[speedups]
+pillow
+hachoir
 requests
-pyrogram
