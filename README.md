@@ -55,6 +55,7 @@ ADMINS = [1317173146]
 https://github.com/r0ld3x/terabox-downloader-bot/assets/77254818/1b68e6ae-715f-4778-845e-4b696762ea93
 
 <p>6. start the bot</p>
+
 ```
 python main.py
 ```
