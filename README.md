@@ -60,4 +60,4 @@ python main.py
 ```
 <h2>🍰 Contribution Guidelines:</h2>
 
-Use at own risk. i am not responsible for any break of Terms and conditions of any companies.
+Use at own risk. I am not responsible for break of any Terms and conditions of any companies and businesses.
