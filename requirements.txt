@@ -1,3 +1,4 @@
+redis
 telethon
 cryptg
 pyaes
@@ -7,3 +8,4 @@ aiohttp[speedups]
 pillow
 hachoir
 requests
+selenium
