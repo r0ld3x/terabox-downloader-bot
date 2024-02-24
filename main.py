@@ -33,7 +33,14 @@ db = redis.Redis(
 )
 
 
-@bot.on(events.NewMessage(pattern="/start$", incoming=True, outgoing=False))
+@bot.on(
+    events.NewMessage(
+        pattern="/start$",
+        incoming=True,
+        outgoing=False,
+        func=lambda x: x.is_private,
+    )
+)
 async def start(m: UpdateNewMessage):
     reply_text = f"""
 Hello! I am a bot to download videos from terabox.
@@ -51,7 +58,14 @@ Join @RoldexVerse For Updates
     await m.reply(reply_text, link_preview=False, parse_mode="markdown")
 
 
-@bot.on(events.NewMessage(pattern="/start (.*)", incoming=True, outgoing=False))
+@bot.on(
+    events.NewMessage(
+        pattern="/start (.*)",
+        incoming=True,
+        outgoing=False,
+        func=lambda x: x.is_private,
+    )
+)
 async def start(m: UpdateNewMessage):
     text = m.pattern_match.group(1)
     fileid = db.get(str(text))
@@ -69,7 +83,7 @@ async def start(m: UpdateNewMessage):
             id=[int(fileid)],
             to_peer=m.chat.id,
             drop_author=True,
-            noforwards=True,
+            # noforwards=True,  # Uncomment it if you dont want to forward the media.
             background=True,
             drop_media_captions=False,
             with_my_score=True,
@@ -79,7 +93,10 @@ async def start(m: UpdateNewMessage):
 
 @bot.on(
     events.NewMessage(
-        pattern="/remove (.*)", incoming=True, outgoing=False, from_users=ADMINS
+        pattern="/remove (.*)",
+        incoming=True,
+        outgoing=False,
+        from_users=ADMINS,
     )
 )
 async def remove(m: UpdateNewMessage):
@@ -142,7 +159,7 @@ async def handle_message(m: Message):
                 id=[int(fileid)],
                 to_peer=m.chat.id,
                 drop_author=True,
-                noforwards=True,
+                # noforwards=True, #Uncomment it if you dont want to forward the media.
                 background=True,
                 drop_media_captions=False,
                 with_my_score=True,
@@ -283,7 +300,7 @@ Direct Link: [Click Here](https://t.me/teraboxdown_bot?start={uuid})
                 to_peer=m.chat.id,
                 top_msg_id=m.id,
                 drop_author=True,
-                noforwards=True,
+                # noforwards=True,  #Uncomment it if you dont want to forward the media.
                 background=True,
                 drop_media_captions=False,
                 with_my_score=True,

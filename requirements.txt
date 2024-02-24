@@ -7,3 +7,4 @@ aiohttp[speedups]
 pillow
 hachoir
 requests
+redis

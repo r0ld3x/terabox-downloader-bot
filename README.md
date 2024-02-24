@@ -9,8 +9,8 @@
 Here're some of the project's best features:
 
 - 2 hours of wait time
-- Download videos fastly
 - 1 minute anti spam
+- Download videos fastly
 - Fast
 - Easy to upadate
 
@@ -30,20 +30,21 @@ pip install -r requirements.txt
 <p>5. Open config.py and fill it</p>
 
 ```python
-API_ID =   # api id
-API_HASH = ""  # api hash
+API_ID = 123456  # api id
+API_HASH = "ed44780dedd182084f2133b16944cf565"  # api hash
 
-BOT_TOKEN = ""  # bot token
+BOT_TOKEN = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"  # bot token
 
 
 ## REDIS
-HOST = ""  # redis host uri
+HOST = "localhost"  # redis host uri
 PORT = 6379  # redis port
 PASSWORD = ""  # redis password
 
 PRIVATE_CHAT_ID = -1001234567890  # CHAT WHERE YOU WANT TO STORE VIDEOS
-COOKIE = ""  # COOKIE FOR AUTHENTICATION (get from chrome dev tools) ex: "PANWEB=1; csrfToken=; lang=en; TSID=; __bid_n=; _ga=; __stripe_mid=; ndus=; browserid==; ndut_fmt=; _ga_06ZNKL8C2E=" (dont use this)
+COOKIE = ""  # COOKIE FOR AUTHENTICATION (get from chrome dev tools) ex: "PANWEB=1; csrfToken=; lang=en; TSID=; __bid_n=; _ga=; __stripe_mid=; ndus=; browserid==; ndut_fmt=; _ga_06ZNKL8C2E=" (don't use this)
 ADMINS = [1317173146]
+
 
 ```
 
@@ -59,6 +60,7 @@ https://github.com/r0ld3x/terabox-downloader-bot/assets/77254818/1b68e6ae-715f-4
 ```
 python main.py
 ```
-<h2>🍰 Contribution Guidelines:</h2>
+
+<h2>🍰 Guidelines:</h2>
 
 Use at own risk. I am not responsible for break of any Terms and conditions of any companies and businesses.
