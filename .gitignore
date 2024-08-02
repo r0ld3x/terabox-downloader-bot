@@ -1,0 +1,11 @@
+*.pyc
+*.session
+*.zip
+*.mp4
+*.mkv
+*.session-journal
+__pycache__
+login.txt
+*.txt
+*.ipynb
+env/
