@@ -87,6 +87,9 @@ https://github.com/r0ld3x/terabox-downloader-bot/assets/77254818/1b68e6ae-715f-4
 python main.py
 ```
 
+```
+python bot.py
+```
 ## **Commands**
 
 The bot's commands are defined in `bot.py` and `main.py`. The available commands are:
